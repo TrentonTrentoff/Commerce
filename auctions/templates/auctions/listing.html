@@ -3,7 +3,7 @@
 {% block body %}
     <h2>{{ listing.title }}</h2>
         {% if user.is_authenticated %}
-            <a href="{% url 'watchlist' %}">Add {{ listing.title }} to Watchlist?</a>
+            <a href="{% url 'addWatchList' listing.id %}">Add {{ listing.title }} to Watchlist?</a>
             {% if user.id == listing.id %}
             <a href="{% url 'closelist' %}">Close {{ listing.title }}?</a>
             {% else %}

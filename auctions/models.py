@@ -33,3 +33,8 @@ class Comments(models.Model):
 
     def __str__(self):
         return f"{self.user} commented {self.content} on {self.currentListing}"
+
+class WatchList(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="userID")
+    currentListing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="watchListing")

@@ -5,7 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import Listing, User
+from .models import Listing, User, WatchList
 
 
 def index(request):
@@ -88,9 +88,23 @@ def listing(request, listing_id):
             "listing": listing
         })
 
-def watchlist(request):
-    pass
+def addWatchList(request, listing_id):
+    watchlisting = Listing.objects.get(id=listing_id)
+    user_id = request.user
+    newWatchList = WatchList(user = user_id, currentListing = watchlisting)
+    newWatchList.save()
+    url = reverse('listing', kwargs={'listing_id': listing_id})
+    return HttpResponseRedirect(url)
 
+def watchList(request):
+    user_id = request.user
+    currentlyWatching = WatchList.objects.filter(user=user_id).values("currentListing")
+    print (currentlyWatching) 
+    listings = Listing.objects.filter(id__in=currentlyWatching)
+    print (listings)
+    return render (request, "auctions/watchlist.html", {
+        "listings": listings
+    })
 def closelist(request):
     pass
 
