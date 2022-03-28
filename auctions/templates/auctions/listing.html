@@ -8,8 +8,9 @@
             <a href="{% url 'closelist' %}">Close {{ listing.title }}?</a>
             {% else %}
             Bid on {{ listing.title }}?
-            <form action="{% url 'bid' %}" method="post">
-                <input type="number" name="price" placeholder="Price">
+            <form action="{% url 'bid' listing.id %}" method="post">
+                {% csrf_token %}
+                {{ form }}
                 <input type="submit">
             </form>
             {% endif %}

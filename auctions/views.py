@@ -4,9 +4,12 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from django import forms
 
-from .models import Listing, User, WatchList
+from .models import Listing, User, WatchList, Bid
 
+class NewBidForm(forms.Form):
+    bid = forms.IntegerField(label="bid")
 
 def index(request):
     return render(request, "auctions/index.html",{
@@ -84,14 +87,17 @@ def listing(request, listing_id):
         pass
     else:
         listing = Listing.objects.get(pk=listing_id)
+        currentPrice = listing.price
+        form = NewBidForm(initial={'bid': currentPrice})
         return render(request, "auctions/listing.html", {
-            "listing": listing
+            "listing": listing,
+            "form": form
         })
 
 def addWatchList(request, listing_id):
     watchlisting = Listing.objects.get(id=listing_id)
     user_id = request.user
-    newWatchList = WatchList(user = user_id, currentListing = watchlisting)
+    newWatchList = WatchList(user=user_id, currentListing=watchlisting)
     newWatchList.save()
     url = reverse('listing', kwargs={'listing_id': listing_id})
     return HttpResponseRedirect(url)
@@ -99,14 +105,26 @@ def addWatchList(request, listing_id):
 def watchList(request):
     user_id = request.user
     currentlyWatching = WatchList.objects.filter(user=user_id).values("currentListing")
-    print (currentlyWatching) 
     listings = Listing.objects.filter(id__in=currentlyWatching)
-    print (listings)
     return render (request, "auctions/watchlist.html", {
         "listings": listings
     })
 def closelist(request):
     pass
 
-def bid(request):
-    pass
+def bid(request, listing_id):
+    if request.method == "POST":
+        listing = Listing.objects.get(pk=listing_id)
+        newBid = request.POST["bid"]
+        if int(newBid) <= listing.price:
+            pass
+        else:
+            listing.price = newBid
+            listing.save()
+            user_id = request.user
+            newBidModel = Bid(user= user_id, price=newBid, currentListing = listing)
+            newBidModel.save()
+            url = reverse('listing', kwargs={'listing_id': listing_id})
+            return HttpResponseRedirect(url)
+
+

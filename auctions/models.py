@@ -20,7 +20,7 @@ class Bid(models.Model):
     id = models.AutoField(primary_key=True)
     price = models.IntegerField()    
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="userBid")
-    currentListing = models.ManyToManyField(Listing, related_name="bidListing")
+    currentListing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="bidListing")
 
     def __str__(self):
         return f"{self.user} bid {self.price} on {self.currentListing}"
