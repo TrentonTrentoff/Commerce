@@ -153,8 +153,23 @@ def comment(request, listing_id):
         listing = Listing.objects.get(pk=listing_id)
         user_id = request.user
         newcomment = request.POST["comment"]
-        print (newcomment)
         newComment = Comments(user=user_id, content = newcomment, currentListing = listing)
         newComment.save()
         url = reverse('listing', kwargs={'listing_id': listing_id})
         return HttpResponseRedirect(url)
+
+def categories(request):
+    allCategories = Listing.objects.values('category').distinct()
+    listOfCategories = []
+    for category in allCategories:
+        listOfCategories.append(category["category"])
+    return render(request, "auctions/category.html", {
+            "allCategories": listOfCategories
+        })
+def searchcategory(request, category):
+    results = Listing.objects.filter(category=category)
+    print (results)
+    return render(request, "auctions/searchcategories.html", {
+            "listings": results,
+            "category": category
+        })
