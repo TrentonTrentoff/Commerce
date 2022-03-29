@@ -3,32 +3,45 @@
 {% block body %}
     <h2>{{ listing.title }}</h2>
         {% if user.is_authenticated %}
-            {% if user.id == listing.id %}
+            {% if user == listing.user %}
                 {% if listing.active == True %}
                     <a href="{% url 'closelist' listing.id %}">Close {{ listing.title }}?</a>
                 {% else %}
                     <p>You have closed the listing.</p>
                 {% endif %}
-            {% endif %}
-            {% if user.id == highestBid.user %}
-                {% if listing.active == False %}
-                    <p>You have won the auction!</p>
-                {% else %}
-                    <p>You have the highest bid!</p>
-                {% endif %}
             {% else %}
-                {% if listing.active == True %}
-                    <a href="{% url 'addWatchList' listing.id %}">Add {{ listing.title }} to Watchlist?</a>
-                        Bid on {{ listing.title }}?
-                    <form action="{% url 'bid' listing.id %}" method="post">
-                        {% csrf_token %}
-                        {{ form }}
-                        <input type="submit">
-                    </form>
+                {% if user == highestBid.user or user == highestBid %}
+                    {% if listing.active == False %}
+                        <p>You have won the auction!</p>
+                    {% else %}
+                        <p>You have the highest bid!</p>
+                    {% endif %}
+                {% else %}
+                    {% if listing.active == True %}
+                        <a href="{% url 'addWatchList' listing.id %}">Add {{ listing.title }} to Watchlist?</a>
+                            Bid on {{ listing.title }}?
+                        <form action="{% url 'bid' listing.id %}" method="post">
+                            {% csrf_token %}
+                            {{ bidform }}
+                            <input type="submit">
+                        </form>
+                    {% endif %}
                 {% endif %}
             {% endif %}
         {% endif %}
         <p>{{ listing.description }}</p>
         {{ listing.price }}
         <img src="{{ listing.image }}" alt="{{ listing.title }}" width="500" height="600">
+        {% for comment in comments %}
+            <div class="comment">{{ comment.user }} commented: 
+                <div>{{ comment.content }}</div>
+            </div>
+            {% empty %}
+            <h1>No Comments Yet!</h1>
+        {% endfor %}
+        <form action="{% url 'comment' listing.id %}" method="post">
+            {% csrf_token %}
+            {{ commentform }}
+            <input type="submit">
+        </form>
 {% endblock %}

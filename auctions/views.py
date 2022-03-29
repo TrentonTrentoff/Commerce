@@ -1,3 +1,4 @@
+from xml.etree.ElementTree import Comment
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
@@ -6,10 +7,13 @@ from django.shortcuts import render
 from django.urls import reverse
 from django import forms
 
-from .models import Listing, User, WatchList, Bid
+from .models import Listing, User, WatchList, Bid, Comments
 
 class NewBidForm(forms.Form):
     bid = forms.IntegerField(label="bid")
+
+class NewCommentForm(forms.Form):
+    comment = forms.CharField(label="comment", widget=forms.Textarea)
 
 def index(request):
     activeListings = Listing.objects.filter(active=True)
@@ -89,13 +93,19 @@ def listing(request, listing_id):
     else:
         listing = Listing.objects.get(pk=listing_id)
         currentPrice = listing.price
-        print (currentPrice)
         highestBid = Bid.objects.filter(price=currentPrice, currentListing = listing_id)
-        print (highestBid.user)
-        form = NewBidForm(initial={'bid': currentPrice})
+        if highestBid.first():
+            highestBid = highestBid[0]
+        else:
+            highestBid = listing.price
+        commentform = NewCommentForm()
+        bidform = NewBidForm(initial={'bid': currentPrice})
+        comments = Comments.objects.filter(currentListing = listing_id)
         return render(request, "auctions/listing.html", {
+            "comments": comments,
             "listing": listing,
-            "form": form,
+            "bidform": bidform,
+            "commentform": commentform,
             "highestBid": highestBid
         })
 
@@ -114,10 +124,12 @@ def watchList(request):
     return render (request, "auctions/watchlist.html", {
         "listings": listings
     })
+
 def closelist(request, listing_id):
     listing = Listing.objects.get(id=listing_id)
     listing.active = False
     listing.save()
+    WatchList.objects.filter(currentListing=listing).delete()
     url = reverse('listing', kwargs={'listing_id': listing_id})
     return HttpResponseRedirect(url)
 
@@ -136,4 +148,13 @@ def bid(request, listing_id):
             url = reverse('listing', kwargs={'listing_id': listing_id})
             return HttpResponseRedirect(url)
 
-
+def comment(request, listing_id):
+    if request.method == "POST":
+        listing = Listing.objects.get(pk=listing_id)
+        user_id = request.user
+        newcomment = request.POST["comment"]
+        print (newcomment)
+        newComment = Comments(user=user_id, content = newcomment, currentListing = listing)
+        newComment.save()
+        url = reverse('listing', kwargs={'listing_id': listing_id})
+        return HttpResponseRedirect(url)

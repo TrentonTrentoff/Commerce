@@ -11,7 +11,7 @@ class Listing(models.Model):
     description = models.CharField(max_length=64)
     price = models.IntegerField()
     image = models.CharField(max_length=128, blank=True)
-    category = models.CharField(max_length=64)
+    category = models.CharField(blank=True, max_length=64)
     active = models.BooleanField()
     user = models.ForeignKey(User, blank=True, on_delete=models.CASCADE, related_name="userListing")
 
@@ -29,7 +29,7 @@ class Bid(models.Model):
 
 class Comments(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.ManyToManyField(User, blank=True, related_name="userComment")
+    user = models.ForeignKey(User, blank=True, on_delete=models.CASCADE, related_name="userComment")
     content = models.CharField(max_length=128)
     currentListing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="commentListing")
 
