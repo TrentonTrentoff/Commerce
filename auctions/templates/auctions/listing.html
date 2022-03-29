@@ -3,16 +3,29 @@
 {% block body %}
     <h2>{{ listing.title }}</h2>
         {% if user.is_authenticated %}
-            <a href="{% url 'addWatchList' listing.id %}">Add {{ listing.title }} to Watchlist?</a>
             {% if user.id == listing.id %}
-            <a href="{% url 'closelist' %}">Close {{ listing.title }}?</a>
+                {% if listing.active == True %}
+                    <a href="{% url 'closelist' listing.id %}">Close {{ listing.title }}?</a>
+                {% else %}
+                    <p>You have closed the listing.</p>
+                {% endif %}
+            {% endif %}
+            {% if user.id == highestBid.user %}
+                {% if listing.active == False %}
+                    <p>You have won the auction!</p>
+                {% else %}
+                    <p>You have the highest bid!</p>
+                {% endif %}
             {% else %}
-            Bid on {{ listing.title }}?
-            <form action="{% url 'bid' listing.id %}" method="post">
-                {% csrf_token %}
-                {{ form }}
-                <input type="submit">
-            </form>
+                {% if listing.active == True %}
+                    <a href="{% url 'addWatchList' listing.id %}">Add {{ listing.title }} to Watchlist?</a>
+                        Bid on {{ listing.title }}?
+                    <form action="{% url 'bid' listing.id %}" method="post">
+                        {% csrf_token %}
+                        {{ form }}
+                        <input type="submit">
+                    </form>
+                {% endif %}
             {% endif %}
         {% endif %}
         <p>{{ listing.description }}</p>

@@ -12,8 +12,9 @@ class NewBidForm(forms.Form):
     bid = forms.IntegerField(label="bid")
 
 def index(request):
+    activeListings = Listing.objects.filter(active=True)
     return render(request, "auctions/index.html",{
-        "listings": Listing.objects.all()
+        "listings": activeListings
     })
 
 
@@ -76,7 +77,7 @@ def create(request):
         price = request.POST["price"]
         image = request.POST["image"]
         current_user = request.user
-        newListing = Listing(title = title, description = description, price = price, image = image, user=current_user)
+        newListing = Listing(title = title, description = description, price = price, image = image, active = True, user=current_user)
         newListing.save()
         return HttpResponseRedirect(reverse("index"))
     else:
@@ -88,10 +89,14 @@ def listing(request, listing_id):
     else:
         listing = Listing.objects.get(pk=listing_id)
         currentPrice = listing.price
+        print (currentPrice)
+        highestBid = Bid.objects.filter(price=currentPrice, currentListing = listing_id)
+        print (highestBid.user)
         form = NewBidForm(initial={'bid': currentPrice})
         return render(request, "auctions/listing.html", {
             "listing": listing,
-            "form": form
+            "form": form,
+            "highestBid": highestBid
         })
 
 def addWatchList(request, listing_id):
@@ -109,8 +114,12 @@ def watchList(request):
     return render (request, "auctions/watchlist.html", {
         "listings": listings
     })
-def closelist(request):
-    pass
+def closelist(request, listing_id):
+    listing = Listing.objects.get(id=listing_id)
+    listing.active = False
+    listing.save()
+    url = reverse('listing', kwargs={'listing_id': listing_id})
+    return HttpResponseRedirect(url)
 
 def bid(request, listing_id):
     if request.method == "POST":

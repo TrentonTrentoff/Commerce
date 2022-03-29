@@ -11,6 +11,8 @@ class Listing(models.Model):
     description = models.CharField(max_length=64)
     price = models.IntegerField()
     image = models.CharField(max_length=128, blank=True)
+    category = models.CharField(max_length=64)
+    active = models.BooleanField()
     user = models.ForeignKey(User, blank=True, on_delete=models.CASCADE, related_name="userListing")
 
     def __str__(self):
